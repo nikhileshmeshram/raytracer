@@ -173,7 +173,7 @@ void CCamera::click(CEnvironment& env){//std::list<CSurface*> &s, std::list<CLig
 void CEnvironment::isHit(CRay r, CColor& c){
     CHitRecord hiter;
     double max_t = std::numeric_limits<double>::max();
-    if (rayHit(r,0.0,max_t,hiter,c)){
+    if (rayHit(r,0.01,max_t,hiter,c)){
         c = CColor();//reset color if new object //let it be hardcoded for now
         CColor Ia = CColor(100,100,100);
         CColor rc = Ia.dimmul(hiter.m.ka);//Ia Later make it environment variable
@@ -185,13 +185,20 @@ void CEnvironment::isHit(CRay r, CColor& c){
             CHitRecord drec;
             CColor t;
             if (!(rayHit(sw,0.01,max_t,drec,t))){
-                CDirection dTemp = (r.getDirection()).Sproduct(-1.0);
+		CDirection d = r.getDirection();
+                CDirection dTemp = d.Sproduct(-1.0);
                 dTemp.normalize();
                 CDirection h = lvec.add(dTemp);
                 h.normalize();
                 CColor dc = rc.add(((*list_iter2)->getDifColor(hiter.m)).Sproduct(std::max(0.0,(hiter.norm).dotProduct(lvec))));
                 CColor fc = dc.add(((*list_iter2)->getSpeColor(hiter.m)).Sproduct(pow(std::max(0.0,(hiter.norm).dotProduct(h)),hiter.m.rho)));
-                CColor temp = c;
+		CDirection rvec = d.subtract((hiter.norm).Sproduct(2.0*d.dotProduct(hiter.norm)));
+		CRay m(hiter.f,rvec);
+		CColor ec = CColor();
+		isHit(m,ec);
+		CColor temp1 = c;
+		c = temp1.add(ec.Sproduct(0.3));
+		CColor temp = c;
                 c = temp.add(fc);
             }else{
                 CColor temp = c;
