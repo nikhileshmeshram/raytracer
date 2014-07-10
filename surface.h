@@ -174,18 +174,25 @@ public:
     CDirection ka;
     CDirection kd;
     CDirection ks;
+    double km;
     double rho;
     CMaterial(){
         ka = CDirection(0.0,0.0,0.0);
         kd = CDirection(0.0,0.0,0.0);
         ks = CDirection(0.0,0.0,0.0);
+        km = 0.0;
         rho = 0.0;
     }
-    CMaterial(CDirection kai, CDirection kdi, CDirection ksi, double rhoi){
+    CMaterial(CDirection kai, CDirection kdi, CDirection ksi, double rhoi,double kmi){
         ka = kai;
         kd = kdi;
         ks = ksi;
+	km = kmi;
         rho = rhoi;
+    }
+    
+    double getMirror(){
+	return km;
     }
 };
 class CHitRecord{
@@ -405,7 +412,7 @@ public:
         CColor s = t.dimmul(m.ks);
         return s;
     }
-    
+
     CPoint getOrigin(){
         return orig;
     }

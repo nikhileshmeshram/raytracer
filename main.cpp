@@ -177,6 +177,17 @@ void CEnvironment::isHit(CRay r,double t0, double t1, CColor& c){
         c = CColor();//reset color if new object //let it be hardcoded for now
         CColor Ia = CColor(100,100,100);
         CColor rc = Ia.dimmul(hiter.m.ka);//Ia Later make it environment variable
+	CColor temp3 = c;
+	c = temp3.add(rc);
+	//add mirror reflection first since it is independent of lights
+	CDirection d = r.getDirection();
+	CDirection rvec = d.subtract((hiter.norm).Sproduct(2.0*d.dotProduct(hiter.norm)));
+	CRay m(hiter.f,rvec);
+	CColor ec = CColor();
+	isHit(m,0.00001,max_t,ec);
+	CColor temp1 = c;
+	c = temp1.add(ec.Sproduct(hiter.m.getMirror()));
+		
         for(std::list<CLight*>::iterator list_iter2 = L_list.begin();list_iter2 != L_list.end(); list_iter2++){
             CDirection lvec = CDirection((*list_iter2)->getOrigin()).subtract(CDirection(hiter.f));
             lvec.normalize();
@@ -184,25 +195,15 @@ void CEnvironment::isHit(CRay r,double t0, double t1, CColor& c){
             CRay sw(hiter.f,lvec);
             CHitRecord drec;
             CColor t;
-            if (!(rayHit(sw,0.01,max_t,drec,t))){
-		CDirection d = r.getDirection();
+            if (!(rayHit(sw,0.00001,max_t,drec,t))){
                 CDirection dTemp = d.Sproduct(-1.0);
                 dTemp.normalize();
                 CDirection h = lvec.add(dTemp);
                 h.normalize();
                 CColor dc = rc.add(((*list_iter2)->getDifColor(hiter.m)).Sproduct(std::max(0.0,(hiter.norm).dotProduct(lvec))));
                 CColor fc = dc.add(((*list_iter2)->getSpeColor(hiter.m)).Sproduct(pow(std::max(0.0,(hiter.norm).dotProduct(h)),hiter.m.rho)));
-		CDirection rvec = d.subtract((hiter.norm).Sproduct(2.0*d.dotProduct(hiter.norm)));
-		CRay m(hiter.f,rvec);
-		CColor ec = CColor();
-		isHit(m,0.01,max_t,ec);
-		CColor temp1 = c;
-		c = temp1.add(ec.Sproduct(0.3));
 		CColor temp = c;
                 c = temp.add(fc);
-            }else{
-                CColor temp = c;
-                c = temp.add(rc);
             }
         }
     }
@@ -240,11 +241,11 @@ int main(int argc, char** argv) {
     
     //define the environment
     CPoint pcent(0.0,3.0,1.0);
-    CMaterial mat_sphere(CDirection(0.1,0.0,0.0),CDirection(0.7,0.0,0.0),CDirection(1.0,1.0,1.0),50.0);
+    CMaterial mat_sphere(CDirection(0.1,0.0,0.0),CDirection(0.7,0.0,0.0),CDirection(1.0,1.0,1.0),50.0,0.0);
     CSphere sphere1(1.0,pcent,mat_sphere);
     
     CPoint pcent1(2.5,3.0,1.0);
-    CMaterial mat_sphere1(CDirection(0.0,0.0,0.1),CDirection(0.0,0.0,0.7),CDirection(0.0,0.0,0.0),100.0);
+    CMaterial mat_sphere1(CDirection(0.0,0.0,0.1),CDirection(0.0,0.0,0.7),CDirection(0.0,0.0,0.0),100.0,0.3);
     CSphere sphere2(1.0,pcent1,mat_sphere1);
     
     //the lights
@@ -266,10 +267,10 @@ int main(int argc, char** argv) {
     CCamera cam(ref_cam,cam_scr,1);
     
     
-    CDirection c_tri(-100.1,0.1,0.1);
-    CDirection b_tri(100.1,0.1,0.1);
-    CDirection a_tri(0.1,100.1,0.1);
-    CMaterial mat_triangle(CDirection(0.0,0.2,0.0),CDirection(0.0,0.7,0.0),CDirection(0.0,0.0,0.0),100.0);
+    CDirection c_tri(-100.1,-100.1,0.1);
+    CDirection b_tri(100.1,-100.1,0.1);
+    CDirection a_tri(0.1,500.1,0.1);
+    CMaterial mat_triangle(CDirection(0.0,0.2,0.0),CDirection(0.0,0.7,0.0),CDirection(0.0,0.0,0.0),100.0,0.1);
     CTriangle triangle1(a_tri,b_tri,c_tri,mat_triangle);
     //main render loop
     //just one object so..
