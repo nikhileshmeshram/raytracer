@@ -467,7 +467,7 @@ public:
         L_list.push_back(l1);
     }
     
-    void isHit(CRay r, CColor& c);
+    void isHit(CRay r,double t0, double t1, CColor& c);
     
     bool rayHit(CRay r,double t0, double t1,CHitRecord& hiter,CColor& c);
 };
